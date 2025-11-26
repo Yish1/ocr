@@ -29,8 +29,19 @@ def convert_image_bytes_to_webp_base64(image_bytes: bytes) -> Optional[str]:
     """接受图片字节，返回 WebP 格式的 base64 编码字符串。"""
     try:
         with Image.open(io.BytesIO(image_bytes)) as img:
+            # 默认行为：对大图进行缩放以控制尺寸（最长边不超过 1024），并使用较高压缩率
+            max_side = 1024
+            # 计算缩放比例
+            w, h = img.size
+            scale = min(1.0, max_side / float(max(w, h)))
+            if scale < 1.0:
+                new_w = int(w * scale)
+                new_h = int(h * scale)
+                img = img.resize((new_w, new_h), Image.LANCZOS)
+
             byte_arr = io.BytesIO()
-            img.save(byte_arr, format='WEBP', quality=85)
+            # 使用 WebP 并降低质量以减小体积
+            img.save(byte_arr, format='WEBP', quality=60)
             return base64.b64encode(byte_arr.getvalue()).decode('utf-8')
     except Exception as e:
         print(f"图片字节转换错误: {e}")
