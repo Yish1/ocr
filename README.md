@@ -68,27 +68,3 @@ http://localhost:5000/
 ```json
 { "error": "错误信息", "elapsed_ms": 456 }
 ```
-
-## 常见问题
-- 浏览器报错 `Failed to fetch` 且路径为 `file:///...`：说明你是直接用浏览器打开 `index.html`（file:// 协议）。请确保通过 HTTP 访问（例如运行 `python .\app.py` 然后访问 `http://localhost:5000/`），不要直接用 file://。
-- 模型报错 `context length / tokens`：请使用较小的图片或裁剪图片。项目中已对上传图片做缩放与压缩（最长边默认 1024px，WebP 质量 60）以减小 base64 大小。如果仍然过大，建议在前端裁剪或在后端检查并提示用户。
-- 如果需要从不同域访问后端，请在 `app.py` 中启用 CORS（添加 `Flask-Cors` 并配置 `CORS(app)`）。
-
-## 开发与调试建议
-- 日志：`app.py` 使用 `logging` 打印请求信息和耗时。
-- 如果后端提供 `mock` 功能已移除，当前默认会直接调用线上模型，请确保 `OPENAI_API_KEY` 可用并有调用额度。
-- 若想避免将图片直接编码进请求（导致消息太大），考虑将图片上传到临时存储（如 S3 或其他可公开访问 URL），然后把图片 URL 提交给模型，或使用 provider 支持的文件/multipart 上传接口。
-
-## 可选项
-- 将依赖固定到当前环境：
-```powershell
-pip freeze > requirements.txt
-```
-- 启用 CORS（跨域访问）：
-```python
-from flask_cors import CORS
-CORS(app, resources={r"/api/*": {"origins": "*"}})
-```
-
----
-
