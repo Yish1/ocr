@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
-    <script>window.SERVER_PROMPT = {{ default_prompt|tojson }};</script>
+    <meta name="server-prompt" content="{{ default_prompt|e }}">
   </head>
   <body>
     <div class="container">
@@ -108,6 +108,8 @@
       const clearBtn = document.getElementById('clearBtn');
       const statusIndicator = document.getElementById('statusIndicator');
       const uploadSection = document.querySelector('.upload-section');
+      const _metaPrompt = document.querySelector('meta[name="server-prompt"]');
+      window.SERVER_PROMPT = _metaPrompt ? _metaPrompt.getAttribute('content') : '';
 
       function resetFileLabel() {
         fileLabel.classList.remove('has-file');
