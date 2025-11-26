@@ -6,9 +6,8 @@ import io
 from typing import Optional
 
 # Prefer environment variable for API key, fall back to the embedded key if not set
-api_key = os.getenv('OPENAI_API_KEY') or "sk-avvchuomkxumfywtzuuupwcojdngvxqggwnpigghmzwolfqo"
 client = OpenAI(
-    api_key=api_key,
+    api_key="sk-avvchuomkxumfywtzuuupwcojdngvxqggwnpigghmzwolfqo",
     base_url="https://api.siliconflow.cn/v1"
 )
 
