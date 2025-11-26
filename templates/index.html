@@ -1,9 +1,8 @@
-pip install -r requirements.txt<!doctype html>
 <html lang="zh-cn">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>OCR 前端</title>
+    <title>Ai作业批改</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -482,54 +481,29 @@ pip install -r requirements.txt<!doctype html>
         </p>
       </div>
 
-<<<<<<< Updated upstream
-    <div class="card">
-
-      <h2 style="margin-top:0">OCR 前端</h2>
-      <p class="lead">选择图片并提交，识别结果与原始 JSON 返回将在右侧显示。</p>
-
-    <form id="uploadForm">
-      <div>
-        <input type="file" id="imageInput" name="image" accept="image/*" multiple required />
-      </div>
-      <div style="margin-top:8px">
-        <input type="text" id="prompt" name="prompt" placeholder="提示词（可选）" style="width:60%" value="{{ default_prompt }}" />
-      </div>
-      <div style="margin-top:12px">
-        <button type="submit">上传并识别</button>
-      </div>
-    </form>
-
-    <h3>识别结果</h3>
-    <div class="grid">
-      <div>
-        <div id="result" class="result">（等待识别）</div>
-        <div style="margin-top:12px" class="muted">已上传图片预览：</div>
-        <div id="previewGrid" style="display:grid;grid-template-columns:repeat(auto-fill,120px);gap:8px;margin-top:8px"></div>
-=======
       <!-- Upload Section -->
       <div class="card">
         <h2 class="section-title">
           <i class="fas fa-cloud-upload-alt"></i>
           图片上传
         </h2>
-        
+
         <div class="upload-section">
           <form id="uploadForm">
             <div class="form-group">
               <div class="file-input-wrapper">
-                <input type="file" id="imageInput" name="image" accept="image/*" required />
+                <input type="file" id="imageInput" name="image" accept="image/*" multiple required />
                 <label for="imageInput" class="file-input-label" id="fileLabel">
                   <i class="fas fa-image fa-2x"></i>
                   <span>点击选择图片或拖拽到此处</span>
                 </label>
               </div>
             </div>
-            
+
             <div class="form-group">
               <input type="text" id="prompt" name="prompt" placeholder="请输入识别提示词（可选）" value="{{ default_prompt }}" />
             </div>
-            
+
             <div class="button-group">
               <button type="submit">
                 <i class="fas fa-magic"></i>
@@ -550,12 +524,12 @@ pip install -r requirements.txt<!doctype html>
           <i class="fas fa-chart-line"></i>
           识别结果
         </h2>
-        
+
         <div id="statusIndicator" class="status-indicator processing" style="display: none;">
           <div class="loading-spinner"></div>
           <span>正在处理中...</span>
         </div>
-        
+
         <div class="results-grid">
           <div class="result-card">
             <div class="card-header">
@@ -566,7 +540,7 @@ pip install -r requirements.txt<!doctype html>
               （等待识别...）
             </div>
           </div>
-          
+
           <div class="debug-card">
             <div class="card-header">
               <i class="fas fa-code"></i>
@@ -582,32 +556,38 @@ pip install -r requirements.txt<!doctype html>
             <i class="fas fa-eye"></i>
             图片预览
           </div>
-          <img id="previewImg" class="preview-image" src="" alt="预览" style="display: none;" />
+          <div id="previewGrid" style="display:grid;grid-template-columns:repeat(auto-fill,120px);gap:8px;margin-top:8px"></div>
         </div>
->>>>>>> Stashed changes
       </div>
     </div>
-
     <script>
       const form = document.getElementById('uploadForm');
       const resultEl = document.getElementById('result');
       const previewGrid = document.getElementById('previewGrid');
       const rawJsonEl = document.getElementById('rawJson');
-<<<<<<< Updated upstream
-
-      // 图片选择后显示多个预览
-=======
->>>>>>> Stashed changes
       const fileInputEl = document.getElementById('imageInput');
       const fileLabel = document.getElementById('fileLabel');
       const clearBtn = document.getElementById('clearBtn');
       const statusIndicator = document.getElementById('statusIndicator');
+      const uploadSection = document.querySelector('.upload-section');
 
-      // 文件选择处理
+      function resetFileLabel() {
+        fileLabel.classList.remove('has-file');
+        fileLabel.innerHTML = '<i class="fas fa-image fa-2x"></i><span>点击选择图片或拖拽到此处</span>';
+      }
+
+      // 图片选择后显示多个预览
       fileInputEl.addEventListener('change', () => {
-<<<<<<< Updated upstream
         previewGrid.innerHTML = '';
         const files = Array.from(fileInputEl.files || []);
+        if (files.length === 0) {
+          resetFileLabel();
+          return;
+        }
+
+        fileLabel.classList.add('has-file');
+        fileLabel.innerHTML = `<i class="fas fa-check-circle fa-2x"></i><span>已选择 ${files.length} 张</span>`;
+
         files.forEach(file => {
           const wrap = document.createElement('div');
           wrap.style.textAlign = 'center';
@@ -627,141 +607,75 @@ pip install -r requirements.txt<!doctype html>
           wrap.appendChild(label);
           previewGrid.appendChild(wrap);
         });
-=======
-        const file = fileInputEl.files[0];
-        if (!file) {
-          previewImg.src = '';
-          previewImg.style.display = 'none';
-          fileLabel.classList.remove('has-file');
-          fileLabel.innerHTML = '<i class="fas fa-image fa-2x"></i><span>点击选择图片或拖拽到此处</span>';
-          return;
-        }
-        
-        // 显示文件名和预览
-        previewImg.src = URL.createObjectURL(file);
-        previewImg.style.display = 'block';
-        fileLabel.classList.add('has-file');
-        fileLabel.innerHTML = `<i class="fas fa-check-circle fa-2x"></i><span>已选择: ${file.name}</span>`;
-        
-        // 添加预览动画
-        previewImg.style.opacity = '0';
-        setTimeout(() => {
-          previewImg.style.transition = 'opacity 0.3s ease';
-          previewImg.style.opacity = '1';
-        }, 100);
->>>>>>> Stashed changes
       });
 
       // 清除按钮
       clearBtn.addEventListener('click', () => {
         fileInputEl.value = '';
-        previewImg.src = '';
-        previewImg.style.display = 'none';
-        fileLabel.classList.remove('has-file');
-        fileLabel.innerHTML = '<i class="fas fa-image fa-2x"></i><span>点击选择图片或拖拽到此处</span>';
+        previewGrid.innerHTML = '';
+        resetFileLabel();
         resultEl.textContent = '（等待识别...）';
         rawJsonEl.textContent = '(等待请求...)';
         statusIndicator.style.display = 'none';
       });
 
-      // 表单提交处理
+      // 表单提交处理（批量）
       form.addEventListener('submit', async (e) => {
         e.preventDefault();
-        
         if (!fileInputEl.files.length) {
-          showNotification('请选择一张图片', 'error');
+          showNotification('请选择至少一张图片', 'error');
           return;
         }
 
         const formData = new FormData();
-<<<<<<< Updated upstream
-        const files = Array.from(fileInput.files || []);
+        const files = Array.from(fileInputEl.files || []);
         files.forEach(f => formData.append('image', f));
-=======
-        formData.append('image', fileInputEl.files[0]);
->>>>>>> Stashed changes
-        formData.append('prompt', document.getElementById('prompt').value || '识别图片中的内容');
+        formData.append('prompt', document.getElementById('prompt').value || '');
 
         // 显示加载状态
-        resultEl.textContent = '正在识别中，请稍候...';
-        rawJsonEl.textContent = '(等待响应...)';
-<<<<<<< Updated upstream
-
-        try {
-            const start = performance.now();
-            const resp = await fetch('/api/ocr', { method: 'POST', body: formData });
-            let text = await resp.text();
-            let parsed = null;
-            try { parsed = JSON.parse(text); } catch(e) { parsed = null; }
-
-            rawJsonEl.textContent = parsed ? JSON.stringify(parsed, null, 2) : text;
-
-            if (resp.ok) {
-              // 处理批量返回
-              if (parsed && parsed.results && Array.isArray(parsed.results)) {
-                resultEl.innerHTML = '';
-                parsed.results.forEach(r => {
-                  const block = document.createElement('div');
-                  block.style.padding = '8px';
-                  block.style.borderBottom = '1px solid #eef2ff';
-                  const name = document.createElement('div');
-                  name.style.fontWeight = '600';
-                  name.textContent = r.filename || '(unknown)';
-                  const textEl = document.createElement('div');
-                  textEl.style.marginTop = '6px';
-                  textEl.textContent = r.result || (r.error || '(无识别结果)');
-                  const meta = document.createElement('div');
-                  meta.className = 'muted';
-                  meta.style.marginTop = '6px';
-                  meta.textContent = r.elapsed_ms ? ('耗时: ' + r.elapsed_ms + ' ms') : '';
-                  block.appendChild(name);
-                  block.appendChild(textEl);
-                  block.appendChild(meta);
-                  resultEl.appendChild(block);
-                });
-              } else if (parsed && parsed.result) {
-                resultEl.textContent = parsed.result;
-              } else {
-                resultEl.textContent = '(无识别结果)';
-              }
-            } else {
-              resultEl.textContent = '识别失败: ' + (parsed?.error || resp.statusText || text);
-            }
-
-        } catch (err) {
-          rawJsonEl.textContent = '' + err;
-          resultEl.textContent = '请求出错: ' + err.message;
-=======
         statusIndicator.style.display = 'flex';
         statusIndicator.className = 'status-indicator processing';
         statusIndicator.innerHTML = '<div class="loading-spinner"></div><span>正在处理中...</span>';
-        
-        previewImg.style.opacity = '0.7';
+        resultEl.textContent = '正在识别中，请稍候...';
+        rawJsonEl.textContent = '(等待响应...)';
 
         try {
           const start = performance.now();
           const resp = await fetch('/api/ocr', { method: 'POST', body: formData });
           const elapsed = Math.round(performance.now() - start);
-          let text = await resp.text();
+          const text = await resp.text();
           let parsed = null;
-          
-          try { 
-            parsed = JSON.parse(text); 
-          } catch(e) { 
-            parsed = null; 
-          }
+          try { parsed = JSON.parse(text); } catch (e) { parsed = null; }
 
-          // 显示调试信息
           rawJsonEl.textContent = parsed ? JSON.stringify(parsed, null, 2) : text;
 
           if (resp.ok) {
             statusIndicator.className = 'status-indicator success';
             statusIndicator.innerHTML = `<i class="fas fa-check-circle"></i><span>识别完成 (${elapsed}ms)</span>`;
-            
-            if (parsed && parsed.result) {
+
+            if (parsed && parsed.results && Array.isArray(parsed.results)) {
+              resultEl.innerHTML = '';
+              parsed.results.forEach(r => {
+                const block = document.createElement('div');
+                block.style.padding = '8px';
+                block.style.borderBottom = '1px solid #eef2ff';
+                const name = document.createElement('div');
+                name.style.fontWeight = '600';
+                name.textContent = r.filename || '(unknown)';
+                const textEl = document.createElement('div');
+                textEl.style.marginTop = '6px';
+                textEl.textContent = r.result || (r.error || '(无识别结果)');
+                const meta = document.createElement('div');
+                meta.className = 'muted';
+                meta.style.marginTop = '6px';
+                meta.textContent = r.elapsed_ms ? ('耗时: ' + r.elapsed_ms + ' ms') : '';
+                block.appendChild(name);
+                block.appendChild(textEl);
+                block.appendChild(meta);
+                resultEl.appendChild(block);
+              });
+            } else if (parsed && parsed.result) {
               resultEl.textContent = parsed.result;
-              // 添加成功动画
-              resultEl.style.animation = 'fadeInUp 0.5s ease-out';
             } else {
               resultEl.textContent = '(无识别结果)';
             }
@@ -770,21 +684,16 @@ pip install -r requirements.txt<!doctype html>
             statusIndicator.innerHTML = '<i class="fas fa-exclamation-circle"></i><span>识别失败</span>';
             resultEl.textContent = '识别失败: ' + (parsed?.error || resp.statusText || text);
           }
-
-          previewImg.style.opacity = '1';
-
         } catch (err) {
           statusIndicator.className = 'status-indicator error';
           statusIndicator.innerHTML = '<i class="fas fa-exclamation-circle"></i><span>请求出错</span>';
           rawJsonEl.textContent = '' + err;
-          resultEl.textContent = '请求出错: ' + err.message;
-          previewImg.style.opacity = '1';
+          resultEl.textContent = '请求出错: ' + (err.message || err);
         }
       });
 
       // 通知函数
       function showNotification(message, type = 'info') {
-        // 创建通知元素
         const notification = document.createElement('div');
         notification.style.cssText = `
           position: fixed;
@@ -798,19 +707,14 @@ pip install -r requirements.txt<!doctype html>
           animation: slideInRight 0.3s ease-out;
           box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2);
         `;
-        
         const colors = {
           error: 'linear-gradient(135deg, #ef4444, #dc2626)',
           success: 'linear-gradient(135deg, #10b981, #059669)',
           info: 'linear-gradient(135deg, #6366f1, #4f46e5)'
         };
-        
         notification.style.background = colors[type] || colors.info;
         notification.innerHTML = `<i class="fas fa-${type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i> ${message}`;
-        
         document.body.appendChild(notification);
-        
-        // 3秒后自动移除
         setTimeout(() => {
           notification.style.animation = 'fadeOut 0.3s ease-out';
           setTimeout(() => notification.remove(), 300);
@@ -818,49 +722,43 @@ pip install -r requirements.txt<!doctype html>
       }
 
       // 添加必要的动画样式
-      const style = document.createElement('style');
-      style.textContent = `
-        @keyframes slideInRight {
-          from { transform: translateX(100%); opacity: 0; }
-          to { transform: translateX(0); opacity: 1; }
-        }
-        @keyframes fadeOut {
-          from { opacity: 1; }
-          to { opacity: 0; }
-        }
+      const styleEl = document.createElement('style');
+      styleEl.textContent = `
+        @keyframes slideInRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
       `;
-      document.head.appendChild(style);
+      document.head.appendChild(styleEl);
 
       // 拖拽上传支持
-      const uploadSection = document.querySelector('.upload-section');
-      
       uploadSection.addEventListener('dragover', (e) => {
         e.preventDefault();
         uploadSection.style.borderColor = 'var(--accent)';
         uploadSection.style.background = '#f8faff';
       });
-      
       uploadSection.addEventListener('dragleave', (e) => {
         e.preventDefault();
         uploadSection.style.borderColor = 'var(--border)';
         uploadSection.style.background = 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)';
       });
-      
       uploadSection.addEventListener('drop', (e) => {
         e.preventDefault();
         uploadSection.style.borderColor = 'var(--border)';
         uploadSection.style.background = 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)';
-        
         const files = e.dataTransfer.files;
         if (files.length > 0 && files[0].type.startsWith('image/')) {
-          fileInputEl.files = files;
+          try { fileInputEl.files = files; } catch (err) {
+            // fallback: create DataTransfer
+            const dataTransfer = new DataTransfer();
+            Array.from(files).forEach(f => dataTransfer.items.add(f));
+            fileInputEl.files = dataTransfer.files;
+          }
           const event = new Event('change', { bubbles: true });
           fileInputEl.dispatchEvent(event);
         } else {
           showNotification('请选择有效的图片文件', 'error');
->>>>>>> Stashed changes
         }
       });
+
     </script>
   </body>
 </html>
