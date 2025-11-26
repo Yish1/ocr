@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <script>window.SERVER_PROMPT = {{ default_prompt|tojson }};</script>
   </head>
   <body>
     <div class="container">
@@ -167,16 +168,23 @@
         const formData = new FormData();
         const files = Array.from(fileInputEl.files || []);
         files.forEach(f => formData.append('image', f));
+        const serverPrompt = (window.SERVER_PROMPT !== undefined) ? window.SERVER_PROMPT : '';
         const promptEl = document.getElementById('prompt');
-        const promptVal = promptEl ? promptEl.value : '';
+        const promptVal = promptEl ? promptEl.value : serverPrompt;
         formData.append('prompt', promptVal);
+
+        // 准备并显示发送的数据摘要
+        const sentObj = {
+          prompt: promptVal,
+          files: files.map(f => ({ name: f.name, type: f.type, size: f.size }))
+        };
 
         // 显示加载状态
         statusIndicator.style.display = 'flex';
         statusIndicator.className = 'status-indicator processing';
         statusIndicator.innerHTML = '<div class="loading-spinner"></div><span>正在处理中...</span>';
         resultEl.textContent = '正在识别中，请稍候...';
-        rawJsonEl.textContent = '(等待响应...)';
+        rawJsonEl.textContent = 'Sent:\n' + JSON.stringify(sentObj, null, 2) + '\n\nReceived:\n(等待响应...)';
 
         try {
           const start = performance.now();
@@ -186,7 +194,7 @@
           let parsed = null;
           try { parsed = JSON.parse(text); } catch (e) { parsed = null; }
 
-          rawJsonEl.textContent = parsed ? JSON.stringify(parsed, null, 2) : text;
+          rawJsonEl.textContent = 'Sent:\n' + JSON.stringify(sentObj, null, 2) + '\n\nReceived:\n' + (parsed ? JSON.stringify(parsed, null, 2) : text);
 
           if (resp.ok) {
             statusIndicator.className = 'status-indicator success';
@@ -226,7 +234,7 @@
         } catch (err) {
           statusIndicator.className = 'status-indicator error';
           statusIndicator.innerHTML = '<i class="fas fa-exclamation-circle"></i><span>请求出错</span>';
-          rawJsonEl.textContent = '' + err;
+            rawJsonEl.textContent = 'Sent:\n' + JSON.stringify(sentObj, null, 2) + '\n\nError:\n' + (err && err.message ? err.message : String(err));
           resultEl.textContent = '请求出错: ' + (err.message || err);
         }
       });

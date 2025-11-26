@@ -13,8 +13,7 @@ DEFAULT_PROMPT = '你现在是一个图像识别机器人，需要识别图片�
 
 @app.route('/')
 def index():
-    return render_template('index.html')
-
+    return render_template('index.html', default_prompt=DEFAULT_PROMPT)
 
 @app.route('/api/ocr', methods=['POST'])
 def api_ocr():
