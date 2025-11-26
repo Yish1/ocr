@@ -19,29 +19,36 @@ def index():
 
 @app.route('/api/ocr', methods=['POST'])
 def api_ocr():
-    if 'image' not in request.files:
+    # 支持批量上传：获取所有名为 'image' 的文件
+    files = request.files.getlist('image')
+    if not files:
         return jsonify({'error': 'no image uploaded'}), 400
 
-    file = request.files['image']
-    img_bytes = file.read()
-    base64_image = convert_image_bytes_to_webp_base64(img_bytes)
-    if not base64_image:
-        return jsonify({'error': 'image conversion failed'}), 500
-
-    # 使用后端默认提示词作为回退值
     prompt = request.form.get('prompt', DEFAULT_PROMPT)
 
-    start = time.time()
-    try:
-        app.logger.info(f"OCR request: filename={file.filename} size={len(img_bytes)} bytes prompt={prompt}")
-        result = execute_ocr_process(base64_image, prompt)
-        elapsed = (time.time() - start) * 1000
-        app.logger.info(f"OCR response length={len(result)} chars elapsed={elapsed:.1f}ms")
-        return jsonify({'result': result, 'elapsed_ms': int(elapsed)})
-    except Exception as e:
-        elapsed = (time.time() - start) * 1000
-        app.logger.exception('OCR failed')
-        return jsonify({'error': str(e), 'elapsed_ms': int(elapsed)}), 500
+    results = []
+    total_start = time.time()
+
+    for f in files:
+        try:
+            img_bytes = f.read()
+            base64_image = convert_image_bytes_to_webp_base64(img_bytes)
+            if not base64_image:
+                results.append({'filename': f.filename, 'error': 'image conversion failed'})
+                continue
+
+            start = time.time()
+            app.logger.info(f"OCR request: filename={f.filename} size={len(img_bytes)} bytes prompt={prompt}")
+            result_text = execute_ocr_process(base64_image, prompt)
+            elapsed = int((time.time() - start) * 1000)
+            app.logger.info(f"OCR response: filename={f.filename} length={len(result_text)} chars elapsed={elapsed}ms")
+            results.append({'filename': f.filename, 'result': result_text, 'elapsed_ms': elapsed})
+        except Exception as e:
+            app.logger.exception('OCR failed for %s', getattr(f, 'filename', '<unknown>'))
+            results.append({'filename': getattr(f, 'filename', '<unknown>'), 'error': str(e)})
+
+    total_elapsed = int((time.time() - total_start) * 1000)
+    return jsonify({'results': results, 'total_elapsed_ms': total_elapsed})
 
 
 if __name__ == '__main__':

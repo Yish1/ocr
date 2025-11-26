@@ -26,12 +26,13 @@ pip install -r requirements.txt<!doctype html>
   <body>
 
     <div class="card">
-      <h2>OCR 前端</h2>
+
+      <h2 style="margin-top:0">OCR 前端</h2>
       <p class="lead">选择图片并提交，识别结果与原始 JSON 返回将在右侧显示。</p>
 
     <form id="uploadForm">
       <div>
-        <input type="file" id="imageInput" name="image" accept="image/*" required />
+        <input type="file" id="imageInput" name="image" accept="image/*" multiple required />
       </div>
       <div style="margin-top:8px">
         <input type="text" id="prompt" name="prompt" placeholder="提示词（可选）" style="width:60%" value="{{ default_prompt }}" />
@@ -46,7 +47,7 @@ pip install -r requirements.txt<!doctype html>
       <div>
         <div id="result" class="result">（等待识别）</div>
         <div style="margin-top:12px" class="muted">已上传图片预览：</div>
-        <img id="previewImg" class="preview" src="" alt="预览" />
+        <div id="previewGrid" style="display:grid;grid-template-columns:repeat(auto-fill,120px);gap:8px;margin-top:8px"></div>
       </div>
       <div>
         <div style="margin-bottom:8px;color:#cbd5e1;font-size:13px">调试 — 原始 JSON</div>
@@ -58,15 +59,33 @@ pip install -r requirements.txt<!doctype html>
     <script>
       const form = document.getElementById('uploadForm');
       const resultEl = document.getElementById('result');
-      const previewImg = document.getElementById('previewImg');
+      const previewGrid = document.getElementById('previewGrid');
       const rawJsonEl = document.getElementById('rawJson');
 
-      // 图片选择后显示预览
+      // 图片选择后显示多个预览
       const fileInputEl = document.getElementById('imageInput');
       fileInputEl.addEventListener('change', () => {
-        const file = fileInputEl.files[0];
-        if (!file) { previewImg.src = ''; return; }
-        previewImg.src = URL.createObjectURL(file);
+        previewGrid.innerHTML = '';
+        const files = Array.from(fileInputEl.files || []);
+        files.forEach(file => {
+          const wrap = document.createElement('div');
+          wrap.style.textAlign = 'center';
+          const img = document.createElement('img');
+          img.src = URL.createObjectURL(file);
+          img.style.width = '120px';
+          img.style.height = '90px';
+          img.style.objectFit = 'cover';
+          img.style.borderRadius = '6px';
+          img.style.border = '1px solid #e6eefc';
+          const label = document.createElement('div');
+          label.style.fontSize = '12px';
+          label.style.marginTop = '6px';
+          label.className = 'muted';
+          label.textContent = file.name;
+          wrap.appendChild(img);
+          wrap.appendChild(label);
+          previewGrid.appendChild(wrap);
+        });
       });
 
       form.addEventListener('submit', async (e) => {
@@ -75,26 +94,46 @@ pip install -r requirements.txt<!doctype html>
         if (!fileInput.files.length) return alert('请选择图片');
 
         const formData = new FormData();
-        formData.append('image', fileInput.files[0]);
+        const files = Array.from(fileInput.files || []);
+        files.forEach(f => formData.append('image', f));
         formData.append('prompt', document.getElementById('prompt').value || '识别图片中的内容');
 
         resultEl.textContent = '正在识别，请稍候...';
         rawJsonEl.textContent = '(等待响应...)';
-        previewImg.style.opacity = '0.9';
 
         try {
             const start = performance.now();
             const resp = await fetch('/api/ocr', { method: 'POST', body: formData });
-            const elapsed = Math.round(performance.now() - start);
             let text = await resp.text();
             let parsed = null;
             try { parsed = JSON.parse(text); } catch(e) { parsed = null; }
 
-            // 只显示 JSON（或原始文本作为降级）
             rawJsonEl.textContent = parsed ? JSON.stringify(parsed, null, 2) : text;
 
             if (resp.ok) {
-              if (parsed && parsed.result) {
+              // 处理批量返回
+              if (parsed && parsed.results && Array.isArray(parsed.results)) {
+                resultEl.innerHTML = '';
+                parsed.results.forEach(r => {
+                  const block = document.createElement('div');
+                  block.style.padding = '8px';
+                  block.style.borderBottom = '1px solid #eef2ff';
+                  const name = document.createElement('div');
+                  name.style.fontWeight = '600';
+                  name.textContent = r.filename || '(unknown)';
+                  const textEl = document.createElement('div');
+                  textEl.style.marginTop = '6px';
+                  textEl.textContent = r.result || (r.error || '(无识别结果)');
+                  const meta = document.createElement('div');
+                  meta.className = 'muted';
+                  meta.style.marginTop = '6px';
+                  meta.textContent = r.elapsed_ms ? ('耗时: ' + r.elapsed_ms + ' ms') : '';
+                  block.appendChild(name);
+                  block.appendChild(textEl);
+                  block.appendChild(meta);
+                  resultEl.appendChild(block);
+                });
+              } else if (parsed && parsed.result) {
                 resultEl.textContent = parsed.result;
               } else {
                 resultEl.textContent = '(无识别结果)';
@@ -103,10 +142,10 @@ pip install -r requirements.txt<!doctype html>
               resultEl.textContent = '识别失败: ' + (parsed?.error || resp.statusText || text);
             }
 
-          } catch (err) {
-            rawJsonEl.textContent = '' + err;
-            resultEl.textContent = '请求出错: ' + err.message;
-          }
+        } catch (err) {
+          rawJsonEl.textContent = '' + err;
+          resultEl.textContent = '请求出错: ' + err.message;
+        }
       });
     </script>
   </body>
