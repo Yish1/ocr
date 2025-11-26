@@ -208,19 +208,10 @@
                 const block = document.createElement('div');
                 block.style.padding = '8px';
                 block.style.borderBottom = '1px solid #eef2ff';
-                const name = document.createElement('div');
-                name.style.fontWeight = '600';
-                name.textContent = r.filename || '(unknown)';
                 const textEl = document.createElement('div');
-                textEl.style.marginTop = '6px';
+                textEl.style.fontWeight = '600';
                 textEl.textContent = r.result || (r.error || '(无识别结果)');
-                const meta = document.createElement('div');
-                meta.className = 'muted';
-                meta.style.marginTop = '6px';
-                meta.textContent = r.elapsed_ms ? ('耗时: ' + r.elapsed_ms + ' ms') : '';
-                block.appendChild(name);
                 block.appendChild(textEl);
-                block.appendChild(meta);
                 resultEl.appendChild(block);
               });
             } else if (parsed && parsed.result) {
