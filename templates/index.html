@@ -1,4 +1,4 @@
-<!doctype html>
+pip install -r requirements.txt<!doctype html>
 <html lang="zh-cn">
   <head>
     <meta charset="utf-8" />
@@ -28,6 +28,16 @@
     <h3>识别结果</h3>
     <div id="result" class="result">（等待识别）</div>
 
+    <h3>调试信息</h3>
+    <div id="debug" class="result" style="background:#fff8e1;color:#222">
+      <div><strong>状态：</strong><span id="status">-</span></div>
+      <div><strong>耗时：</strong><span id="elapsed">-</span> ms</div>
+      <div><strong>响应 JSON：</strong></div>
+      <pre id="rawJson" style="max-height:200px;overflow:auto;background:#f0f0f0;padding:8px"></pre>
+      <div><strong>原始响应文本（若非 JSON）：</strong></div>
+      <pre id="rawText" style="max-height:200px;overflow:auto;background:#f0f0f0;padding:8px"></pre>
+    </div>
+
     <script>
       const form = document.getElementById('uploadForm');
       const resultEl = document.getElementById('result');
@@ -44,16 +54,35 @@
         resultEl.textContent = '正在识别，请稍候...';
 
         try {
-          const resp = await fetch('/api/ocr', { method: 'POST', body: formData });
-          const data = await resp.json();
-          if (resp.ok) {
-            resultEl.textContent = data.result || '(无识别结果)';
-          } else {
-            resultEl.textContent = '识别失败: ' + (data.error || resp.statusText);
+            const start = performance.now();
+            const resp = await fetch('/api/ocr', { method: 'POST', body: formData });
+            const elapsed = Math.round(performance.now() - start);
+            document.getElementById('status').textContent = resp.status + ' ' + resp.statusText;
+            document.getElementById('elapsed').textContent = elapsed;
+
+            let text = await resp.text();
+            // 尝试解析为 JSON
+            let parsed = null;
+            try { parsed = JSON.parse(text); } catch(e) { parsed = null; }
+
+            document.getElementById('rawText').textContent = text;
+            document.getElementById('rawJson').textContent = parsed ? JSON.stringify(parsed, null, 2) : '(非 JSON)';
+
+            if (resp.ok) {
+              if (parsed && parsed.result) {
+                resultEl.textContent = parsed.result;
+              } else {
+                resultEl.textContent = '(无识别结果)';
+              }
+            } else {
+              resultEl.textContent = '识别失败: ' + (parsed?.error || resp.statusText || text);
+            }
+
+          } catch (err) {
+            document.getElementById('status').textContent = 'network error';
+            document.getElementById('rawText').textContent = '' + err;
+            resultEl.textContent = '请求出错: ' + err.message;
           }
-        } catch (err) {
-          resultEl.textContent = '请求出错: ' + err.message;
-        }
       });
     </script>
   </body>
