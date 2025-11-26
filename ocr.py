@@ -7,8 +7,8 @@ from typing import Optional
 
 # Prefer environment variable for API key, fall back to the embedded key if not set
 client = OpenAI(
-    api_key="sk-avvchuomkxumfywtzuuupwcojdngvxqggwnpigghmzwolfqo",
-    base_url="https://api.siliconflow.cn/v1"
+    api_key="sk-272abfebe94b4b67a8fffc115e2839c7",
+    base_url="https://api.deepseek.com/v1"
 )
 
 
@@ -39,26 +39,13 @@ def convert_image_bytes_to_webp_base64(image_bytes: bytes) -> Optional[str]:
 def execute_ocr_process(base64_image: str, user_prompt: str) -> str:
     """调用模型进行 OCR，并返回完整的识别文本（不打印）。"""
     # 创建流式请求
+    # Some providers expect message content to be plain text. To be compatible,
+    # combine the prompt and the image data URI into a single text message.
+    # This avoids errors like: unknown variant `image_url`, expected `text`.
+    combined_text = f"{user_prompt}\nImage: data:image/webp;base64,{base64_image}"
     response = client.chat.completions.create(
-        model="Qwen/Qwen2.5-VL-72B-Instruct",
-        messages=[
-            {
-                "role": "user",
-                "content": [
-                    {
-                        "type": "image_url",
-                        "image_url": {
-                            "url": f"data:image/webp;base64,{base64_image}",  # 指定WebP格式
-                            "detail": "high"  # 平衡速度与精度
-                        }
-                    },
-                    {
-                        "type": "text",
-                        "text": f"{user_prompt}"  # 替换为你的提示词
-                    }
-                ]
-            }
-        ],
+        model="deepseek-chat",
+        messages=[{"role": "user", "content": combined_text}],
         stream=True,
         max_tokens=1000  # 控制响应长度
     )

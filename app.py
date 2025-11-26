@@ -7,10 +7,14 @@ from ocr import convert_image_bytes_to_webp_base64, execute_ocr_process
 logging.basicConfig(level=logging.INFO)
 app = Flask(__name__, static_folder='static', template_folder='templates')
 
+# 后端的默认提示词，可通过环境变量 `DEFAULT_PROMPT` 覆盖
+DEFAULT_PROMPT = os.getenv('DEFAULT_PROMPT', '你现在是一个图像识别机器人，需要识别图片中的文字内容，并尽可能准确地保留原本格式返回给我结果，不需要有多余的话')
+
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    # 将后端默认提示词传给前端模板
+    return render_template('index.html', default_prompt=DEFAULT_PROMPT)
 
 
 @app.route('/api/ocr', methods=['POST'])
@@ -24,7 +28,8 @@ def api_ocr():
     if not base64_image:
         return jsonify({'error': 'image conversion failed'}), 500
 
-    prompt = request.form.get('prompt', '识别图片中的内容')
+    # 使用后端默认提示词作为回退值
+    prompt = request.form.get('prompt', DEFAULT_PROMPT)
 
     start = time.time()
     try:
