@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="zh-cn">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>OCR 前端示例</title>
+    <style>
+      body{font-family:Segoe UI, Roboto, sans-serif; max-width:800px;margin:40px auto;padding:0 16px}
+      .result{white-space:pre-wrap;background:#f6f6f6;padding:12px;border-radius:6px;margin-top:12px}
+    </style>
+  </head>
+  <body>
+    <h2>OCR 前端示例</h2>
+    <p>选择图片后点击“上传并识别”，识别结果会显示在下方。</p>
+
+    <form id="uploadForm">
+      <div>
+        <input type="file" id="imageInput" name="image" accept="image/*" required />
+      </div>
+      <div style="margin-top:8px">
+        <input type="text" id="prompt" name="prompt" placeholder="提示词（可选）" style="width:60%" />
+      </div>
+      <div style="margin-top:12px">
+        <button type="submit">上传并识别</button>
+      </div>
+    </form>
+
+    <h3>识别结果</h3>
+    <div id="result" class="result">（等待识别）</div>
+
+    <script>
+      const form = document.getElementById('uploadForm');
+      const resultEl = document.getElementById('result');
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const fileInput = document.getElementById('imageInput');
+        if (!fileInput.files.length) return alert('请选择图片');
+
+        const formData = new FormData();
+        formData.append('image', fileInput.files[0]);
+        formData.append('prompt', document.getElementById('prompt').value || '识别图片中的内容');
+
+        resultEl.textContent = '正在识别，请稍候...';
+
+        try {
+          const resp = await fetch('/api/ocr', { method: 'POST', body: formData });
+          const data = await resp.json();
+          if (resp.ok) {
+            resultEl.textContent = data.result || '(无识别结果)';
+          } else {
+            resultEl.textContent = '识别失败: ' + (data.error || resp.statusText);
+          }
+        } catch (err) {
+          resultEl.textContent = '请求出错: ' + err.message;
+        }
+      });
+    </script>
+  </body>
+</html>
