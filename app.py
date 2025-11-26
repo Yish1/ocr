@@ -8,8 +8,12 @@ logging.basicConfig(level=logging.INFO)
 app = Flask(__name__, static_folder='static', template_folder='templates')
 
 # 默认提示词
-DEFAULT_PROMPT = '你现在是一个图像识别机器人，需要识别图片中的文字内容，并尽可能准确地保留原本格式返回给我结果，不需要有多余的话'
-
+DEFAULT_PROMPT = (
+    "你现在是一名作业批改机器人，必须严格按照以下规则工作：\n"
+    "完整的识别图片中的文本内容，如果图片中有题目(有问句，选项，填空等)，以及作答内容"
+    "请批改作业，指出错误并给出正确答案，最后总结错误类型并给出改进建议。\n"
+    "如果不是题目，只需要对文本OCR识别结果进行输出。\n"
+)
 
 @app.route('/')
 def index():
