@@ -167,7 +167,9 @@
         const formData = new FormData();
         const files = Array.from(fileInputEl.files || []);
         files.forEach(f => formData.append('image', f));
-        formData.append('prompt', document.getElementById('prompt').value || '');
+        const promptEl = document.getElementById('prompt');
+        const promptVal = promptEl ? promptEl.value : '';
+        formData.append('prompt', promptVal);
 
         // 显示加载状态
         statusIndicator.style.display = 'flex';

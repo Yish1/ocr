@@ -7,14 +7,13 @@ from ocr import convert_image_bytes_to_webp_base64, execute_ocr_process
 logging.basicConfig(level=logging.INFO)
 app = Flask(__name__, static_folder='static', template_folder='templates')
 
-# 后端的默认提示词，可通过环境变量 `DEFAULT_PROMPT` 覆盖
-DEFAULT_PROMPT = os.getenv('DEFAULT_PROMPT', '你现在是一个图像识别机器人，需要识别图片中的文字内容，并尽可能准确地保留原本格式返回给我结果，不需要有多余的话')
+# 默认提示词
+DEFAULT_PROMPT = '你现在是一个图像识别机器人，需要识别图片中的文字内容，并尽可能准确地保留原本格式返回给我结果，不需要有多余的话'
 
 
 @app.route('/')
 def index():
-    # 将后端默认提示词传给前端模板
-    return render_template('index.html', default_prompt=DEFAULT_PROMPT)
+    return render_template('index.html')
 
 
 @app.route('/api/ocr', methods=['POST'])
@@ -24,7 +23,8 @@ def api_ocr():
     if not files:
         return jsonify({'error': 'no image uploaded'}), 400
 
-    prompt = request.form.get('prompt', DEFAULT_PROMPT)
+    # 始终使用后端硬编码的提示词，忽略前端传入的任何 prompt
+    prompt = DEFAULT_PROMPT
 
     results = []
     total_start = time.time()
