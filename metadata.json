@@ -1,0 +1,8 @@
+{
+  "name": "智评AI (SmartGrade AI)",
+  "description": "基于大模型的智能作业批改与OCR分析系统，支持多学科通道与知识库连接。",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}
