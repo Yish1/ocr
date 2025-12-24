@@ -1,5 +1,0 @@
-# Requirements for the OCR project
-openai>=1.0.0
-Pillow
-Flask
-python-dotenv
